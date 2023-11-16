@@ -36,8 +36,6 @@ class MainActivity : AppCompatActivity() {
 
     private val editTexts = mutableMapOf<Int, EditText>()
 
-    private var nowEditing = -1
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -60,13 +58,12 @@ class MainActivity : AppCompatActivity() {
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.nowEditingIndex.observe(this@MainActivity) {
-                    nowEditing = it
-                }
                 viewModel.metrics.collect {
                     for (i in lower until upper) {
-                        if (i != nowEditing)
-                            editTexts[i]?.setText(it[i].toString())
+                        editTexts[i]?.setText(it[i].toString())
+                        editTexts[i]?.let { editText ->
+                            editText.setSelection(editText.text.length)
+                        }
                     }
                 }
             }

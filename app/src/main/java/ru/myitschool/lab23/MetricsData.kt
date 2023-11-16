@@ -38,7 +38,7 @@ class MetricsData {
     }
 
     fun recalculate(index: Int, value: Double): List<Double> {
-        val metres = convertToMetres(index, value)
+        val metres = if (index != METRE_INDEX) convertToMetres(index, value) else value
 
         for (i in metrics.indices) {
             metrics[i] = metres / coefficients[i]
@@ -49,5 +49,9 @@ class MetricsData {
 
     private fun convertToMetres(index: Int, value: Double): Double {
         return value * coefficients[index]
+    }
+
+    companion object {
+        private const val METRE_INDEX = 14
     }
 }
