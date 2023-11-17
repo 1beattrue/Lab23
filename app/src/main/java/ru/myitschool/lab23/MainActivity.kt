@@ -56,14 +56,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.metrics.collect {
-                    for (i in lower until upper) {
+        viewModel.metrics.observe(this) {
+            for (i in lower until upper) {
+                if (!editTexts[i]?.hasFocus()!!) {
+                    if (it[i] != 0.0) {
                         editTexts[i]?.setText(it[i].toString())
-                        editTexts[i]?.let { editText ->
-                            editText.setSelection(editText.text.length)
-                        }
+                    } else {
+                        editTexts[i]?.setText("")
                     }
                 }
             }
@@ -111,7 +110,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(oldText: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                viewModel.recalculate(index, oldText.toString())
+                if (editText.hasFocus()) viewModel.recalculate(index, oldText.toString())
             }
 
             override fun afterTextChanged(p0: Editable?) {
