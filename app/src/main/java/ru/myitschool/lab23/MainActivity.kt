@@ -1,20 +1,16 @@
 package ru.myitschool.lab23
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.coroutineScope
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.launch
 import ru.myitschool.lab23.databinding.ActivityMainBinding
 
 
@@ -36,14 +32,18 @@ class MainActivity : AppCompatActivity() {
 
     private val editTexts = mutableMapOf<Int, EditText>()
 
+    private val clipboard by lazy {
+        getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
         lower =
-            if (intent.extras?.get("lower") != null) intent.extras?.get("lower") as Int else 5
+            if (intent.extras?.get("lower") != null) intent.extras?.get("lower") as Int else 0
         upper =
-            if (intent.extras?.get("upper") != null) intent.extras?.get("upper") as Int else 20
+            if (intent.extras?.get("upper") != null) intent.extras?.get("upper") as Int else 25
 
         captions = resources.getStringArray(R.array.text_view_captions)
         editTextTags = resources.getStringArray(R.array.edit_text_tags)
@@ -58,11 +58,13 @@ class MainActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.metrics.observe(this) {
             for (i in lower until upper) {
-                if (!editTexts[i]?.hasFocus()!!) {
-                    if (it[i] != 0.0) {
-                        editTexts[i]?.setText(it[i].toString())
-                    } else {
-                        editTexts[i]?.setText("")
+                editTexts[i]?.let { editText ->
+                    if (!editText.hasFocus()) {
+                        if (it[i] != START_VALUE) {
+                            editText.setText(it[i].toString())
+                        } else {
+                            editText.text = null
+                        }
                     }
                 }
             }
@@ -91,6 +93,9 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             text = captions[index]
+            setOnClickListener {
+                copyToClipboard(editTexts[index]?.text.toString())
+            }
         }
     }
 
@@ -122,6 +127,16 @@ class MainActivity : AppCompatActivity() {
         editTexts[index] = editText
 
         return editText
+    }
+
+    private fun copyToClipboard(text: String) {
+        val clip = ClipData.newPlainText(KEY_COPY, text)
+        clipboard.setPrimaryClip(clip)
+    }
+
+    companion object {
+        private const val START_VALUE = 0.0
+        private const val KEY_COPY = "Copied Text"
     }
 }
 

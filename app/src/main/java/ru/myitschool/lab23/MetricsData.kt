@@ -31,14 +31,10 @@ class MetricsData {
         10.0.pow(-24),
     )
 
-    private val metrics: MutableList<Double> = mutableListOf<Double>().apply {
-        repeat(25) {
-            add(0.0)
-        }
-    }
+    private val metrics: MutableList<Double> = MutableList(25) { START_VALUE }
 
     fun recalculate(index: Int, value: Double): List<Double> {
-        val metres = if (index != METRE_INDEX) convertToMetres(index, value) else value
+        val metres = convertToMetres(index, value)
 
         for (i in metrics.indices) {
             metrics[i] = metres / coefficients[i]
@@ -52,6 +48,6 @@ class MetricsData {
     }
 
     companion object {
-        private const val METRE_INDEX = 14
+        private const val START_VALUE = 0.0
     }
 }
