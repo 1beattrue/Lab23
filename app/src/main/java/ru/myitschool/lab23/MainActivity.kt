@@ -11,6 +11,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import ru.myitschool.lab23.databinding.ActivityMainBinding
 
 
@@ -56,19 +59,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.metrics.observe(this) {
-            for (i in lower until upper) {
-                editTexts[i]?.let { editText ->
-                    if (!editText.hasFocus()) {
-                        if (it[i] != START_VALUE) {
-                            editText.setText(it[i].toString())
-                        } else {
-                            editText.text = null
+        viewModel.metrics
+            .onEach {
+                for (i in lower until upper) {
+                    editTexts[i]?.let { editText ->
+                        if (!editText.hasFocus()) {
+                            if (it[i] != START_VALUE) {
+                                editText.setText(it[i].toString())
+                            } else {
+                                editText.text = null
+                            }
                         }
                     }
                 }
             }
-        }
+            .launchIn(lifecycleScope)
     }
 
     private fun createLinearLayout(index: Int): LinearLayout {

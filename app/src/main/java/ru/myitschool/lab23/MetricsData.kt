@@ -31,10 +31,12 @@ class MetricsData {
         10.0.pow(-24),
     )
 
-    private val metrics: MutableList<Double> = MutableList(25) { START_VALUE }
+    private val metrics = MutableList(25) { START_VALUE }
 
-    fun recalculate(index: Int, value: Double): List<Double> {
-        val metres = convertToMetres(index, value)
+    fun recalculate(index: Int, value: String): List<Double> {
+        val valueDouble = value.toDoubleOrNull() ?: 0.0
+
+        val metres = convertToMetres(index, valueDouble)
 
         for (i in metrics.indices) {
             metrics[i] = metres / coefficients[i]

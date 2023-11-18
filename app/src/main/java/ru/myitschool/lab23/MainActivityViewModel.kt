@@ -1,22 +1,21 @@
 package ru.myitschool.lab23
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 
 class MainActivityViewModel : ViewModel() {
     private val repository = MetricsData()
 
-    private val _metrics = MutableLiveData<List<Double>>()
-    val metrics: LiveData<List<Double>>
+    private val _metrics = MutableSharedFlow<List<Double>>()
+    val metrics: Flow<List<Double>>
         get() = _metrics
 
     fun recalculate(index: Int, value: String) {
-        var count = 0.0
-        try {
-            count = value.toDouble()
-        } catch (_: Exception) {
+        viewModelScope.launch {
+            _metrics.emit(repository.recalculate(index, value))
         }
-        _metrics.value = repository.recalculate(index, count)
     }
 }
