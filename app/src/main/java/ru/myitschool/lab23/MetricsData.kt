@@ -21,10 +21,10 @@ class MetricsData {
     companion object {
         private const val START_VALUE = 0.0
         private val COEFFICIENTS = listOf(
-            39.3701,
-            1.09361,
-            3.28084,
-            0.000_621_371,
+            0.0254,
+            0.9144,
+            0.3048,
+            1609.34,
             10.0.pow(24),
             10.0.pow(21),
             10.0.pow(18),

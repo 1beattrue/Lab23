@@ -27,11 +27,16 @@ class MainActivity : AppCompatActivity() {
         ViewModelProvider(this)[MainActivityViewModel::class.java]
     }
 
+    private val captions by lazy {
+        resources.getStringArray(R.array.text_view_captions)
+    }
+
+    private val editTextTags by lazy {
+        resources.getStringArray(R.array.edit_text_tags)
+    }
+
     private var lower = 0
     private var upper = 0
-
-    private lateinit var captions: Array<String>
-    private lateinit var editTextTags: Array<String>
 
     private val editTexts = mutableMapOf<Int, EditText>()
 
@@ -43,16 +48,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        lower =
-            if (intent.extras?.get("lower") != null) intent.extras?.get("lower") as Int else 0
-        upper =
-            if (intent.extras?.get("upper") != null) intent.extras?.get("upper") as Int else 25
+        lower = intent.extras?.getInt(KEY_LOWER) ?: VALUE_LOWER
+        upper = intent.extras?.getInt(KEY_UPPER) ?: VALUE_UPPER
 
-        captions = resources.getStringArray(R.array.text_view_captions)
-        editTextTags = resources.getStringArray(R.array.edit_text_tags)
-
-        for (i in lower until upper) {
-            binding.root.addView(createLinearLayout(i))
+        for (index in lower until upper) {
+            binding.root.addView(createLinearLayout(index))
         }
 
         observeViewModel()
@@ -60,12 +60,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.metrics
-            .onEach {
+            .onEach { metrics ->
                 for (i in lower until upper) {
                     editTexts[i]?.let { editText ->
                         if (!editText.hasFocus()) {
-                            if (it[i] != START_VALUE) {
-                                editText.setText(it[i].toString())
+                            if (metrics[i] != VALUE_START) {
+                                editText.setText(metrics[i].toString())
                             } else {
                                 editText.text = null
                             }
@@ -110,24 +110,23 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            hint = getString(R.string._0)
+            hint = getString(R.string.start_value)
             tag = editTextTags[index]
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                }
+
+                override fun onTextChanged(oldText: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                    if (hasFocus()) viewModel.recalculate(index, oldText.toString())
+                }
+
+                override fun afterTextChanged(p0: Editable?) {
+
+                }
+            })
         }
-
-        editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(oldText: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (editText.hasFocus()) viewModel.recalculate(index, oldText.toString())
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-
-            }
-
-        })
 
         editTexts[index] = editText
 
@@ -140,8 +139,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val START_VALUE = 0.0
-        private const val KEY_COPY = "Copied Text"
+        private const val VALUE_START = 0.0
+        private const val KEY_COPY = "copy key"
+        private const val KEY_LOWER = "lower"
+        private const val KEY_UPPER = "upper"
+        private const val VALUE_LOWER = 0
+        private const val VALUE_UPPER = 25
     }
 }
 
