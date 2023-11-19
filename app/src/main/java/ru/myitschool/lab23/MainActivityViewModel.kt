@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 class MainActivityViewModel : ViewModel() {
     private val repository = MetricsData()
 
-    private val _metrics = MutableSharedFlow<List<Double>>()
+    private val _metrics = MutableSharedFlow<List<Double>>(1)
     val metrics: Flow<List<Double>>
         get() = _metrics
 
